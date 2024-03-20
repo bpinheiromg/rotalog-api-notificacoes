@@ -9,6 +9,16 @@
 
   <ItemGroup>
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="6.0.8" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.12" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.12" />
+    <PackageReference Include="MediatR" Version="11.1.0" />
+    <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="11.0.0" />
+    <!-- FIXME: MediatR version pinned - should be updated -->
+    <!-- FIXME: Missing health check packages -->
+    <!-- FIXME: Missing Serilog for structured logging -->
+    <!-- TODO: Add FluentValidation -->
+    <!-- TODO: Add Polly for resilience -->
   </ItemGroup>
 
 </Project>
