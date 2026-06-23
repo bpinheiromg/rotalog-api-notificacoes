@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "/home/ubuntu/rotalog-workspace/api-notificacoes/api-notificacoes/api-notificacoes.csproj": {}
+    "D:\\OneDrive\\Saves Jogos\\Projetos\\rotalog\\rotalog-api-notificacoes\\api-notificacoes.csproj": {}
   },
   "projects": {
-    "/home/ubuntu/rotalog-workspace/api-notificacoes/api-notificacoes/api-notificacoes.csproj": {
+    "D:\\OneDrive\\Saves Jogos\\Projetos\\rotalog\\rotalog-api-notificacoes\\api-notificacoes.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/home/ubuntu/rotalog-workspace/api-notificacoes/api-notificacoes/api-notificacoes.csproj",
+        "projectUniqueName": "D:\\OneDrive\\Saves Jogos\\Projetos\\rotalog\\rotalog-api-notificacoes\\api-notificacoes.csproj",
         "projectName": "api-notificacoes",
-        "projectPath": "/home/ubuntu/rotalog-workspace/api-notificacoes/api-notificacoes/api-notificacoes.csproj",
-        "packagesPath": "/home/ubuntu/.nuget/packages/",
-        "outputPath": "/home/ubuntu/rotalog-workspace/api-notificacoes/api-notificacoes/obj/",
+        "projectPath": "D:\\OneDrive\\Saves Jogos\\Projetos\\rotalog\\rotalog-api-notificacoes\\api-notificacoes.csproj",
+        "packagesPath": "C:\\Users\\bpinh\\.nuget\\packages\\",
+        "outputPath": "D:\\OneDrive\\Saves Jogos\\Projetos\\rotalog\\rotalog-api-notificacoes\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "/home/ubuntu/.nuget/NuGet/NuGet.Config"
+          "C:\\Users\\bpinh\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net6.0"
@@ -38,6 +38,26 @@
         "net6.0": {
           "targetAlias": "net6.0",
           "dependencies": {
+            "MediatR": {
+              "target": "Package",
+              "version": "[11.1.0, )"
+            },
+            "MediatR.Extensions.Microsoft.DependencyInjection": {
+              "target": "Package",
+              "version": "[11.0.0, )"
+            },
+            "Microsoft.EntityFrameworkCore": {
+              "target": "Package",
+              "version": "[6.0.12, )"
+            },
+            "Microsoft.EntityFrameworkCore.Design": {
+              "target": "Package",
+              "version": "[6.0.12, )"
+            },
+            "Npgsql.EntityFrameworkCore.PostgreSQL": {
+              "target": "Package",
+              "version": "[6.0.8, )"
+            },
             "Swashbuckle.AspNetCore": {
               "target": "Package",
               "version": "[6.5.0, )"
@@ -49,7 +69,8 @@
             "net47",
             "net471",
             "net472",
-            "net48"
+            "net48",
+            "net481"
           ],
           "assetTargetFallback": true,
           "warn": true,
@@ -61,7 +82,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/usr/lib/dotnet/sdk/6.0.136/RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\6.0.428\\RuntimeIdentifierGraph.json"
         }
       }
     }
