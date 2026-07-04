@@ -9,3 +9,4 @@ obj/
 
 # FIXME: appsettings.json com credenciais deveria estar aqui
 # appsettings.json
+logs/api-notificacoes-*.json
