@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using api_notificacoes.DTOs;
 using api_notificacoes.Services;
+using Serilog.Context;
 
 namespace api_notificacoes.Controllers;
 
@@ -76,7 +77,7 @@ public class NotificacoesController : ControllerBase
     /// <summary>
     /// Criar e enviar notificação
     /// POST /api/notificacoes
-    /// 
+    ///
     /// Este é o endpoint principal chamado pelo api-frotas e api-entregas
     /// </summary>
     [HttpPost]
@@ -84,19 +85,33 @@ public class NotificacoesController : ControllerBase
     {
         try
         {
-            // FIXME: Validação mínima inline
-            if (string.IsNullOrEmpty(request.Tipo))
-                return BadRequest(new { error = "Campo 'tipo' é obrigatório" });
-            if (string.IsNullOrEmpty(request.Destinatario))
-                return BadRequest(new { error = "Campo 'destinatario' é obrigatório" });
-            if (string.IsNullOrEmpty(request.Mensagem) && (request.Variaveis == null || request.Variaveis.Count == 0))
-                return BadRequest(new { error = "Campo 'mensagem' ou 'variaveis' é obrigatório" });
+            // Log estruturado com correlation ID
+            var correlationId = HttpContext.Request.Headers["X-Correlation-ID"].FirstOrDefault();
+            using (LogContext.PushProperty("CorrelationId", correlationId))
+            using (LogContext.PushProperty("EventType", "NotificacaoRecebida"))
+            {
+                _logger.LogInformation("Notificação recebida: Tipo={Tipo}, Destinatario={Destinatario}, Canal={Canal}, ServicoOrigem={ServicoOrigem}",
+                    request.Tipo, request.Destinatario, request.Canal ?? "email", request.ServicoOrigem);
 
-            var notificacao = await _service.CriarNotificacao(request);
-            return CreatedAtAction(nameof(BuscarPorId), new { id = notificacao.Id }, notificacao);
+                // FIXME: Validação mínima inline
+                if (string.IsNullOrEmpty(request.Tipo))
+                    return BadRequest(new { error = "Campo 'tipo' é obrigatório" });
+                if (string.IsNullOrEmpty(request.Destinatario))
+                    return BadRequest(new { error = "Campo 'destinatario' é obrigatório" });
+                if (string.IsNullOrEmpty(request.Mensagem) && (request.Variaveis == null || request.Variaveis.Count == 0))
+                    return BadRequest(new { error = "Campo 'mensagem' ou 'variaveis' é obrigatório" });
+
+                var notificacao = await _service.CriarNotificacao(request);
+
+                _logger.LogInformation("Notificação criada com sucesso: NotificacaoId={Id}, Status={Status}",
+                    notificacao.Id, notificacao.Status);
+
+                return CreatedAtAction(nameof(BuscarPorId), new { id = notificacao.Id }, notificacao);
+            }
         }
         catch (ArgumentException ex)
         {
+            _logger.LogWarning(ex, "Erro de validação ao criar notificação");
             return BadRequest(new { error = ex.Message });
         }
         catch (Exception ex)

@@ -14,6 +14,11 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.12" />
     <PackageReference Include="MediatR" Version="11.1.0" />
     <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="11.0.0" />
+    <!-- Serilog for structured logging -->
+    <PackageReference Include="Serilog.AspNetCore" Version="6.1.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="4.1.0" />
+    <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
+    <PackageReference Include="Serilog.Formatting.Compact" Version="1.1.0" />
     <!-- FIXME: MediatR version pinned - should be updated -->
     <!-- FIXME: Missing health check packages -->
     <!-- FIXME: Missing Serilog for structured logging -->

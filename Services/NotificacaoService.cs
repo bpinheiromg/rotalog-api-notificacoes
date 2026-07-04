@@ -1,7 +1,9 @@
 using api_notificacoes.Data;
 using api_notificacoes.DTOs;
 using api_notificacoes.Models;
+using api_notificacoes.Extensions;
 using Microsoft.EntityFrameworkCore;
+using Serilog.Context;
 
 namespace api_notificacoes.Services;
 
@@ -230,6 +232,9 @@ public class NotificacaoService
     /// </summary>
     private async Task TentarEnviar(Notificacao notificacao)
     {
+        // Extrai correlationId do LogContext se disponível
+        var correlationId = LogContextExtensions.GetCurrentCorrelationId();
+
         try
         {
             notificacao.Tentativas++;
@@ -238,11 +243,11 @@ public class NotificacaoService
             // FIXME: Envio fake - simula envio com delay
             if (notificacao.Canal == "email")
             {
-                await EnviarEmail(notificacao);
+                await EnviarEmail(notificacao, correlationId);
             }
             else if (notificacao.Canal == "sms")
             {
-                await EnviarSms(notificacao);
+                await EnviarSms(notificacao, correlationId);
             }
             else
             {
@@ -252,20 +257,20 @@ public class NotificacaoService
             notificacao.Status = "ENVIADO";
             notificacao.DataEnvio = DateTime.UtcNow;
 
-            _logger.LogInformation("Notificação enviada: {Id} via {Canal} para {Dest}",
-                notificacao.Id, notificacao.Canal, notificacao.Destinatario);
+            _logger.LogInformation("Notificação enviada: {Id} via {Canal} para {Dest} | CorrelationId: {CorrelationId}",
+                notificacao.Id, notificacao.Canal, notificacao.Destinatario, correlationId);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Erro ao enviar notificação {Id}: {Msg}", notificacao.Id, ex.Message);
+            _logger.LogError(ex, "Erro ao enviar notificação {Id}: {Msg} | CorrelationId: {CorrelationId}", notificacao.Id, ex.Message, correlationId);
 
             notificacao.ErroMensagem = ex.Message;
 
             if (notificacao.Tentativas >= notificacao.MaxTentativas)
             {
                 notificacao.Status = "FALHA";
-                _logger.LogWarning("Notificação {Id} marcada como FALHA após {Tentativas} tentativas",
-                    notificacao.Id, notificacao.Tentativas);
+                _logger.LogWarning("Notificação {Id} marcada como FALHA após {Tentativas} tentativas | CorrelationId: {CorrelationId}",
+                    notificacao.Id, notificacao.Tentativas, correlationId);
             }
         }
 
@@ -277,7 +282,7 @@ public class NotificacaoService
     /// FIXME: Não envia email de verdade
     /// FIXME: Credenciais SMTP no appsettings.json
     /// </summary>
-    private async Task EnviarEmail(Notificacao notificacao)
+    private async Task EnviarEmail(Notificacao notificacao, string? correlationId)
     {
         var smtpServer = _configuration["EmailSettings:SmtpServer"];
         var smtpPort = _configuration["EmailSettings:SmtpPort"];
@@ -285,14 +290,9 @@ public class NotificacaoService
         // FIXME: Senha hardcoded no config
         var senderPassword = _configuration["EmailSettings:SenderPassword"];
 
-        _logger.LogInformation("[EMAIL FAKE] Enviando para {Dest} via {Smtp}:{Port}",
-            notificacao.Destinatario, smtpServer, smtpPort);
-        _logger.LogInformation("[EMAIL FAKE] De: {From} | Assunto: {Subject}",
-            senderEmail, notificacao.Assunto);
-        _logger.LogInformation("[EMAIL FAKE] Corpo: {Body}", 
-            notificacao.Mensagem.Length > 100 
-                ? notificacao.Mensagem.Substring(0, 100) + "..." 
-                : notificacao.Mensagem);
+        // Log estruturado para tentativa de envio
+        _logger.LogInformation("Tentando enviar email: NotificacaoId={Id}, Destinatario={Destinatario}, Assunto={Assunto}, SmtpServer={SmtpServer}, SmtpPort={SmtpPort}, CorrelationId={CorrelationId}",
+            notificacao.Id, notificacao.Destinatario, notificacao.Assunto, smtpServer, smtpPort, correlationId);
 
         // FIXME: Simula delay de envio
         await Task.Delay(100);
@@ -300,8 +300,15 @@ public class NotificacaoService
         // FIXME: Simula falha aleatória (10% chance)
         if (new Random().Next(10) == 0)
         {
-            throw new Exception("SMTP connection timeout (simulated)");
+            var errorMsg = "SMTP connection timeout (simulated)";
+            _logger.LogError("Falha ao enviar email: NotificacaoId={Id}, Erro={Error}, CorrelationId={CorrelationId}",
+                notificacao.Id, errorMsg, correlationId);
+            throw new Exception(errorMsg);
         }
+
+        // Log estruturado para envio bem-sucedido
+        _logger.LogInformation("Email enviado com sucesso: NotificacaoId={Id}, Destinatario={Destinatario}, CorrelationId={CorrelationId}",
+            notificacao.Id, notificacao.Destinatario, correlationId);
     }
 
     /// <summary>
@@ -309,14 +316,14 @@ public class NotificacaoService
     /// FIXME: Não envia SMS de verdade
     /// FIXME: API key hardcoded
     /// </summary>
-    private async Task EnviarSms(Notificacao notificacao)
+    private async Task EnviarSms(Notificacao notificacao, string? correlationId)
     {
         var apiKey = _configuration["SmsSettings:ApiKey"];
         var apiUrl = _configuration["SmsSettings:ApiUrl"];
 
-        _logger.LogInformation("[SMS FAKE] Enviando para {Dest} via {Url}",
-            notificacao.Destinatario, apiUrl);
-        _logger.LogInformation("[SMS FAKE] Mensagem: {Msg}", notificacao.Mensagem);
+        // Log estruturado para tentativa de envio
+        _logger.LogInformation("Tentando enviar SMS: NotificacaoId={Id}, Destinatario={Destinatario}, ApiUrl={ApiUrl}, CorrelationId={CorrelationId}",
+            notificacao.Id, notificacao.Destinatario, apiUrl, correlationId);
 
         // FIXME: Simula delay de envio
         await Task.Delay(50);
@@ -324,8 +331,15 @@ public class NotificacaoService
         // FIXME: Simula falha aleatória (20% chance para SMS)
         if (new Random().Next(5) == 0)
         {
-            throw new Exception("SMS API rate limit exceeded (simulated)");
+            var errorMsg = "SMS API rate limit exceeded (simulated)";
+            _logger.LogError("Falha ao enviar SMS: NotificacaoId={Id}, Erro={Error}, CorrelationId={CorrelationId}",
+                notificacao.Id, errorMsg, correlationId);
+            throw new Exception(errorMsg);
         }
+
+        // Log estruturado para envio bem-sucedido
+        _logger.LogInformation("SMS enviado com sucesso: NotificacaoId={Id}, Destinatario={Destinatario}, CorrelationId={CorrelationId}",
+            notificacao.Id, notificacao.Destinatario, correlationId);
     }
 
     /// <summary>

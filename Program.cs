@@ -1,18 +1,26 @@
 /**
  * RotaLog - API Notificações
  * Notification microservice (.NET Core 6)
- * 
+ *
  * Legacy codebase with Clean Architecture abandoned in the middle
  * MediatR configured but not used, god class service
  * Intentional technical debt for Alura course
  */
 
+using Serilog;
 using Microsoft.EntityFrameworkCore;
 using api_notificacoes.Data;
 using api_notificacoes.Services;
 using MediatR;
+using api_notificacoes.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configure Serilog
+builder.Host.UseSerilog((context, services, configuration) => configuration
+    .ReadFrom.Configuration(context.Configuration)
+    .ReadFrom.Services(services)
+    .Enrich.FromLogContext());
 
 // Add services to the container
 builder.Services.AddControllers();
@@ -51,6 +59,10 @@ builder.Services.AddCors(options =>
     });
 });
 
+// Correlation ID options
+builder.Services.Configure<CorrelationIdOptions>(
+    builder.Configuration.GetSection(CorrelationIdOptions.SectionName));
+
 // TODO: Add proper authentication
 // TODO: Add rate limiting
 // TODO: Add health checks via IHealthCheck
@@ -66,6 +78,9 @@ app.UseSwaggerUI(c =>
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "API Notificações v1");
     c.RoutePrefix = "swagger";
 });
+
+// Correlation ID middleware (must be before other middleware)
+app.UseMiddleware<CorrelationIdMiddleware>();
 
 // FIXME: CORS antes de auth (ordem correta, mas permite tudo)
 app.UseCors();
